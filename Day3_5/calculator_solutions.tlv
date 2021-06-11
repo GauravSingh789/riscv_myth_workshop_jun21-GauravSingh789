@@ -11,7 +11,6 @@
    // stimulus support, and Verilator config.
    m4_makerchip_module   // (Expanded in Nav-TLV pane.)
 \TLV
-   $reset = *reset;
 
    $cnt[31:0] = $reset ? 0 : (>>1$cnt + 1);  
 
