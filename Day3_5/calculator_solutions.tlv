@@ -13,15 +13,17 @@
 \TLV
    |calc
       @0
-         //$reset = *reset;
-         $cnt[31:0] = $reset ? 0 : (>>1$cnt + 1);
-         $val1[31:0] = >>1$out[31:0];
+         $reset = *reset;
+         $valid = $reset ? 0 : !(>>1$valid);
+         $val1[31:0] = >>2$out[31:0];
          $val2[31:0] = $rand2[3:0];
          $sum[31:0]  = $val1[31:0] + $val2[31:0];
          $diff[31:0] = $val1[31:0] - $val2[31:0];
          $prod[31:0] = $val1[31:0] * $val2[31:0];
          $quot[31:0] = $val1[31:0] / $val2[31:0];
-         $out[31:0] = ($reset == 1) ? 0 : 
+         
+      @1
+         $out[31:0] = ((($valid) || (!($reset)) == 1) ? 0 : 
             ($op[1:0] == 2'b00) ? $sum[31:0] : 
                ($op[1:0] == 2'b01) ? $diff [31:0] : 
                   ($op[1:0] == 2'b10) ? $prod[31:0]: 
@@ -32,4 +34,4 @@
    *passed = *cyc_cnt > 40;
    *failed = 1'b0;
 \SV
-   endmodul
+   endmodule
