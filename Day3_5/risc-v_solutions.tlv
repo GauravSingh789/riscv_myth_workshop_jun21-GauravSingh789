@@ -40,7 +40,12 @@
    |cpu
       @0
          $reset = *reset;
-         $pc[31:0] = >>1$reset ? 32'b0 : >>1$pc[31:0] + 32'd4; 
+         $pc[31:0] = >>1$reset ? 32'b0 : >>1$pc[31:0] + 32'd4;
+         //Fetch
+         $imem_rd_en = !($reset); 
+         $imem_rd_addr[M4_IMEM_INDEX_CNT-1:0] = $pc[M4_IMEM_INDEX_CNT+1:2];
+      @1
+         $instr[31:0] = $imem_rd_data[31:0];
 
 
 
@@ -62,10 +67,10 @@
    //  o data memory
    //  o CPU visualization
    |cpu
-      //m4+imem(@1)    // Args: (read stage)
+      m4+imem(@1)    // Args: (read stage)
       //m4+rf(@1, @1)  // Args: (read stage, write stage) - if equal, no register bypass is required
       //m4+dmem(@4)    // Args: (read/write stage)
    
-   //m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
+   m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
 \SV
    endmodule
