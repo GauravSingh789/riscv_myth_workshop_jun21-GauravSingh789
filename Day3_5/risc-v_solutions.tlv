@@ -69,6 +69,11 @@
              $is_u_instr ? {$instr[31:12], 12'b0} :
              $is_j_instr ? {{12{$instr[31]}}, $instr[19:12], $instr[20], $instr[30:21], 1'b0} :
                                                    32'b0;
+         $rs2[4:0] = $instr[24:20];
+         $rs1[4:0] = $instr[19:15];
+         $funct3[2:0] = $instr[14:12];
+         $funct7[6:0] = $instr[31:25];
+         $rd[4:0] = $instr[11:7];
 
 
 
