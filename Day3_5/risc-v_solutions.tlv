@@ -121,8 +121,7 @@
          $rf_wr_index[4:0] = $rd;
          $rf_wr_data[31:0] = $result[31:0];
 
-      // YOUR CODE HERE
-      // ...
+   
 
       // Note: Because of the magic we are using for visualisation, if visualisation is enabled below,
       //       be sure to avoid having unassigned signals (which you might be using for random inputs)
