@@ -45,13 +45,14 @@
                   $start ? 1'b1:
                   >>3$valid;
          $pc[31:0] = >>1$reset ? 32'b0 : 
-                     >>1$taken_br ? >>1$br_tgt_pc :
-                     >>1$pc[31:0] + 32'd4;
+                     >>3$valid_taken_br ? >>3$br_tgt_pc :
+                     >>3$inc_pc;
          //Fetch
          $imem_rd_en = !($reset); 
          $imem_rd_addr[M4_IMEM_INDEX_CNT-1:0] = $pc[M4_IMEM_INDEX_CNT+1:2];
       @1
          //Instruction types decode
+         $inc_pc[31:0] = $pc[31:0] + 32'd4;
          $instr[31:0] = $imem_rd_data[31:0];
          
          $is_i_instr = $instr[6:2] ==? 5'b0000x ||
@@ -122,7 +123,7 @@
                         $is_add ? $src1_value[31:0] + $src2_value[31:0] :
                         32'bx;
          //Register File write
-         $rf_wr_en = $rd_valid && $rd != 5'b0;
+         $rf_wr_en = $rd_valid && ($rd != 5'b0) && $valid;
          $rf_wr_index[4:0] = $rd;
          $rf_wr_data[31:0] = $result[31:0];
          
@@ -134,6 +135,9 @@
                      $is_bgeu ? ($src1_value >= $src2_value):
                      1'b0;
          $br_tgt_pc[31:0] = $pc + $imm[31:0];
+         
+      @3
+         $valid_taken_br = $valid && $taken_br;
       // YOUR CODE HERE
       // ...
 
