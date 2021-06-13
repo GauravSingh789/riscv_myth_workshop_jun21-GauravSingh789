@@ -153,7 +153,7 @@
          
       @3
          //ALU
-         $result[31:0] = $is_addi ? ($src1_value + $imm[31:0]) :
+         $result[31:0] = ($is_addi || $is_load || $is_s_instr) ? ($src1_value + $imm[31:0]) :
                          $is_add ? $src1_value[31:0] + $src2_value[31:0] :
                          $is_andi ? $src1_value & $imm :
                          $is_ori ? $src1_value | $imm :
@@ -182,9 +182,9 @@
          $valid_taken_br = $valid && $taken_br;
          
          //Register File write
-         $rf_wr_en = $rd_valid && ($rd != 5'b0) && $valid;
-         $rf_wr_index[4:0] = $rd;
-         $rf_wr_data[31:0] = $result[31:0];
+         $rf_wr_en = >>2$valid_load ? 1'b1 : ($rd_valid && ($rd != 5'b0) && $valid && !$valid_load);
+         $rf_wr_index[4:0] = >>2$valid_load ? >>2$rd : $rd;
+         $rf_wr_data[31:0] = (>>2$valid_load) ? >>2$ld_data: $result[31:0]; //Can also use >>2$valid_load as the MUX select
          
          $taken_br = $is_beq ? ($src1_value == $src2_value) :
                      $is_bne ? ($src1_value != $src2_value):
