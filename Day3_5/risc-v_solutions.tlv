@@ -41,14 +41,14 @@
       @0
          $reset = *reset;
          $start = (>>1$reset && !$reset) ? 1'b1 : 1'b0;
-         $valid = $reset ? 1'b0 :
-                  $start ? 1'b1:
-                  >>3$valid;
-         $pc[31:0] = >>1$reset ? 32'b0 : 
+         //$valid = $reset ? 1'b0 :
+         //       $start ? 1'b1:
+         //     >>3$valid;
+         $pc[31:0] = >>1$reset ? 32'b0 :
                      >>3$valid_taken_br ? >>3$br_tgt_pc :
-                     >>3$inc_pc;
+                     >>1$inc_pc;
          //Fetch
-         $imem_rd_en = !($reset); 
+         $imem_rd_en = !($reset);
          $imem_rd_addr[M4_IMEM_INDEX_CNT-1:0] = $pc[M4_IMEM_INDEX_CNT+1:2];
       @1
          //Instruction types decode
@@ -117,13 +117,13 @@
          $rf_rd_en2 = $rs2_valid;
          $rf_rd_index2[4:0] = $rs2;
          
-         $src1_value[31:0] = $rf_rd_data1[31:0];
-         $src2_value[31:0] = $rf_rd_data2[31:0];
+         $src1_value[31:0] = (($rs1[4:0] == >>1$rd[4:0]) && >>1$rf_wr_en) ? >>1$result : $rf_rd_data1[31:0];
+         $src2_value[31:0] = (($rs2[4:0] == >>1$rd[4:0]) && >>1$rf_wr_en) ? >>1$result : $rf_rd_data2[31:0];
          
          $br_tgt_pc[31:0] = $pc + $imm[31:0];
          
       @3
-         
+         //ALU
          $result[31:0] = $is_addi ? ($src1_value + $imm[31:0]) :
                         $is_add ? $src1_value[31:0] + $src2_value[31:0] :
                         32'bx;
@@ -139,7 +139,9 @@
                      $is_bge ? (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])):
                      $is_bltu ? ($src1_value < $src2_value):
                      $is_bgeu ? ($src1_value >= $src2_value):
-                     1'b0;         
+                     1'b0;
+         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br);
+         
       // YOUR CODE HERE
       // ...
 
