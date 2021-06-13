@@ -47,6 +47,8 @@
          //     >>3$valid;
          $pc[31:0] = >>1$reset ? 32'b0 :
                      >>3$valid_taken_br ? >>3$br_tgt_pc :
+                     (>>3$valid_jump && >>3$is_jal) ? >>3$br_tgt_pc:
+                     (>>3$valid_jump && >>3$is_jalr) ? >>3$jalr_tgt_pc :
                      >>3$valid_load ? >>3$inc_pc:
                      >>1$inc_pc;
          //Fetch
@@ -114,7 +116,7 @@
          $is_lui = $dec_bits ==? 11'bxxx_x_0110111;
          $is_auipc = $dec_bits ==? 11'bx_xxx_0010111;
          $is_jal = $dec_bits ==? 11'bx_xxx_1101111;
-         $is_jalb = $dec_bits ==? 11'bx_000_1100111;
+         $is_jalr = $dec_bits ==? 11'bx_000_1100111;
          $is_sb = $dec_bits ==? 11'bx_000_0100011;
          $is_sh = $dec_bits ==? 11'bx_001_0100011;
          $is_sw = $dec_bits ==? 11'bx_010_0100011;
@@ -136,7 +138,7 @@
          $is_or = $dec_bits ==? 11'b0_110_0110011;
          $is_and = $dec_bits ==? 11'b0_111_0110011;
          
-         `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add $is_load $is_lui $is_auipc $is_jal $is_jalb 
+         `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add $is_load $is_lui $is_auipc $is_jal $is_jalr 
                   $is_sb $is_sh $is_sw $is_slti $is_sltiu $is_xori $is_ori $is_andi $is_slli $is_srli $is_sral $is_sub $is_sll $is_slt
                   $is_sltu $is_xor $is_srl $is_sra $is_or $is_and);
          
@@ -181,12 +183,15 @@
          $sltu_rslt[31:0]  = $src1_value[31:0] < $src2_value[31:0];
          $sltiu_rslt[31:0] = $src1_value[31:0] < $imm;
          $valid_taken_br = $valid && $taken_br;
+         $valid_jump = $valid && $is_jump;
+         $jalr_tgt_pc[31:0] = $src1_value[31:0] + $imm[31:0]; 
          
          //Register File write
          $rf_wr_en = >>2$valid_load || ($rd_valid && ($rd != 5'b0) && $valid);
          $rf_wr_index[4:0] = >>2$valid_load ? >>2$rd : $rd;
          $rf_wr_data[31:0] = (>>2$valid_load) ? >>2$ld_data: $result[31:0]; //Can also use >>2$valid_load as the MUX select
          
+         //Branching Decision
          $taken_br = $is_beq ? ($src1_value == $src2_value) :
                      $is_bne ? ($src1_value != $src2_value):
                      $is_blt ? (($src1_value < $src2_value) ^ ($src1_value[31] != $src2_value[31])):
@@ -194,6 +199,8 @@
                      $is_bltu ? ($src1_value < $src2_value):
                      $is_bgeu ? ($src1_value >= $src2_value):
                      1'b0;
+         //Jump
+         $is_jump = $is_jal || $is_jalr;
          $valid_load = $valid && $is_load;
          $valid = !(>>1$valid_taken_br || >>2$valid_taken_br) || !(>>1$valid_load || >>2$valid_load);
          
