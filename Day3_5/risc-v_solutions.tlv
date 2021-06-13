@@ -110,6 +110,7 @@
          
          `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add);
          
+      @2
          //Register File read
          $rf_rd_en1 = $rs1_valid;
          $rf_rd_index1[4:0] = $rs1;
@@ -119,9 +120,14 @@
          $src1_value[31:0] = $rf_rd_data1[31:0];
          $src2_value[31:0] = $rf_rd_data2[31:0];
          
+         $br_tgt_pc[31:0] = $pc + $imm[31:0];
+         
+      @3
+         
          $result[31:0] = $is_addi ? ($src1_value + $imm[31:0]) :
                         $is_add ? $src1_value[31:0] + $src2_value[31:0] :
                         32'bx;
+         $valid_taken_br = $valid && $taken_br;
          //Register File write
          $rf_wr_en = $rd_valid && ($rd != 5'b0) && $valid;
          $rf_wr_index[4:0] = $rd;
@@ -133,11 +139,7 @@
                      $is_bge ? (($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31])):
                      $is_bltu ? ($src1_value < $src2_value):
                      $is_bgeu ? ($src1_value >= $src2_value):
-                     1'b0;
-         $br_tgt_pc[31:0] = $pc + $imm[31:0];
-         
-      @3
-         $valid_taken_br = $valid && $taken_br;
+                     1'b0;         
       // YOUR CODE HERE
       // ...
 
@@ -158,7 +160,7 @@
    //  o CPU visualization
    |cpu
       m4+imem(@1)    // Args: (read stage)
-      m4+rf(@1, @1)  // Args: (read stage, write stage) - if equal, no register bypass is required
+      m4+rf(@2, @3)  // Args: (read stage, write stage) - if equal, no register bypass is required
       //m4+dmem(@4)    // Args: (read/write stage)
    
    m4+cpu_viz(@4)    // For visualisation, argument should be at least equal to the last stage of CPU logic. @4 would work for all labs.
