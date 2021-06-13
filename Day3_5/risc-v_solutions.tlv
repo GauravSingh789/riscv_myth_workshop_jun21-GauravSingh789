@@ -32,7 +32,8 @@
    m4_asm(ADDI, r13, r13, 1)            // Increment intermediate register by 1
    m4_asm(BLT, r13, r12, 1111111111000) // If a3 is less than a2, branch to label named <loop>
    m4_asm(ADD, r10, r14, r0)            // Store final result to register a0 so that it can be read by main program
-   
+   m4_asm(SW, r0, r10, 010000);            //Store the final result value to Byte address 4
+   m4_asm(LW, r15, r0, 010000);            // Load the final result value from address 4 to x15
    // Optional:
    // m4_asm(JAL, r7, 00000000000000000000) // Done. Jump to itself (infinite loop). (Up to 20-bit signed immediate plus implicit 0 bit (unlike JALR) provides byte address; last immediate bit should also be 0)
    m4_define_hier(['M4_IMEM'], M4_NUM_INSTRS)
@@ -182,7 +183,7 @@
          $valid_taken_br = $valid && $taken_br;
          
          //Register File write
-         $rf_wr_en = >>2$valid_load ? 1'b1 : ($rd_valid && ($rd != 5'b0) && $valid && !$valid_load);
+         $rf_wr_en = >>2$valid_load || ($rd_valid && ($rd != 5'b0) && $valid);
          $rf_wr_index[4:0] = >>2$valid_load ? >>2$rd : $rd;
          $rf_wr_data[31:0] = (>>2$valid_load) ? >>2$ld_data: $result[31:0]; //Can also use >>2$valid_load as the MUX select
          
@@ -204,7 +205,7 @@
          $dmem_rd_en = $is_load;
          $dmem_rd_index[5:0] = $result[5:2];
       @5   
-         $ld_data = $dmem_rd_data;
+         $ld_data[31:0] = $dmem_rd_data;
          
       // YOUR CODE HERE
       // ...
@@ -216,7 +217,7 @@
    
    // Assert these to end simulation (before Makerchip cycle limit).
    //*passed = *cyc_cnt > 40;
-   *passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);
+   *passed = |cpu/xreg[15]>>5$value == (1+2+3+4+5+6+7+8+9);
    *failed = 1'b0;
    
    // Macro instantiations for:
