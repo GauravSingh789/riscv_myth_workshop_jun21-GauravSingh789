@@ -40,12 +40,13 @@
    |cpu
       @0
          $reset = *reset;
-         $start = (>>1$reset && !$reset) ? 1'b1 : 1'b0;
+         //$start = (>>1$reset && !$reset) ? 1'b1 : 1'b0;
          //$valid = $reset ? 1'b0 :
          //       $start ? 1'b1:
          //     >>3$valid;
          $pc[31:0] = >>1$reset ? 32'b0 :
                      >>3$valid_taken_br ? >>3$br_tgt_pc :
+                     >>3$valid_load ? >>3$inc_pc:
                      >>1$inc_pc;
          //Fetch
          $imem_rd_en = !($reset);
@@ -97,6 +98,7 @@
          $rd_valid = $is_r_instr  || $is_u_instr || $is_j_instr || $is_i_instr;
          ?$rd_valid
             $rd[4:0] = $instr[11:7];
+            
          //Instruction decode
          $dec_bits[10:0] = {$funct7[5], $funct3, $opcode};
          $is_beq = $dec_bits ==? 11'bx_000_1100011;
@@ -178,6 +180,7 @@
          $sltu_rslt[31:0]  = $src1_value[31:0] < $src2_value[31:0];
          $sltiu_rslt[31:0] = $src1_value[31:0] < $imm;
          $valid_taken_br = $valid && $taken_br;
+         
          //Register File write
          $rf_wr_en = $rd_valid && ($rd != 5'b0) && $valid;
          $rf_wr_index[4:0] = $rd;
@@ -190,7 +193,9 @@
                      $is_bltu ? ($src1_value < $src2_value):
                      $is_bgeu ? ($src1_value >= $src2_value):
                      1'b0;
-         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br);
+         $valid_load = $valid && $is_load;
+         $valid = !(>>1$valid_taken_br || >>2$valid_taken_br) || !(>>1$valid_load || >>2$valid_load);
+         
          
       // YOUR CODE HERE
       // ...
